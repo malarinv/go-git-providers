@@ -17,7 +17,6 @@ limitations under the License.
 package gitea
 
 import (
-	"context"
 	"fmt"
 
 	"code.gitea.io/sdk/gitea"
@@ -25,7 +24,7 @@ import (
 )
 
 // giteaClientImpl is a wrapper around *gitea.Client, which implements higher-level methods,
-// operating on the gitea structs. TODO: Verify pagination is implemented for all List* methods,
+// operating on the gitea structs. Pagination is implemented for all List* methods,
 // all returned objects are validated, and HTTP errors are handled/wrapped using handleHTTPError.
 // This interface is also fakeable, in order to unit-test the client.
 type giteaClient interface {
@@ -34,59 +33,59 @@ type giteaClient interface {
 
 	// GetOrg is a wrapper for "GET /orgs/{org}".
 	// This function HTTP error wrapping, and validates the server result.
-	GetOrg(ctx context.Context, orgName string) (*gitea.Organization, error)
+	GetOrg(orgName string) (*gitea.Organization, error)
 	// ListOrgs is a wrapper for "GET /user/orgs".
-	ListOrgs(ctx context.Context) ([]*gitea.Organization, error)
+	ListOrgs() ([]*gitea.Organization, error)
 
 	// ListOrgTeamMembers is a wrapper for "GET /orgs/{org}/teams" then "GET /teams/{team}/members".
-	ListOrgTeamMembers(ctx context.Context, orgName, teamName string) ([]*gitea.User, error)
+	ListOrgTeamMembers(orgName, teamName string) ([]*gitea.User, error)
 	// ListOrgTeams is a wrapper for "GET /orgs/{org}/teams".
-	ListOrgTeams(ctx context.Context, orgName string) ([]*gitea.Team, error)
+	ListOrgTeams(orgName string) ([]*gitea.Team, error)
 
 	// GetRepo is a wrapper for "GET /repos/{owner}/{repo}".
 	// This function handles HTTP error wrapping, and validates the server result.
-	GetRepo(ctx context.Context, owner, repo string) (*gitea.Repository, error)
+	GetRepo(owner, repo string) (*gitea.Repository, error)
 	// ListOrgRepos is a wrapper for "GET /orgs/{org}/repos".
-	ListOrgRepos(ctx context.Context, org string) ([]*gitea.Repository, error)
+	ListOrgRepos(org string) ([]*gitea.Repository, error)
 	// ListUserRepos is a wrapper for "GET /users/{username}/repos".
-	ListUserRepos(ctx context.Context, username string) ([]*gitea.Repository, error)
+	ListUserRepos(username string) ([]*gitea.Repository, error)
 	// CreateRepo is a wrapper for "POST /user/repos" (if orgName == "")
 	// or "POST /orgs/{org}/repos" (if orgName != "").
 	// This function handles HTTP error wrapping, and validates the server result.
-	CreateRepo(ctx context.Context, orgName string, req *gitea.CreateRepoOption) (*gitea.Repository, error)
+	CreateRepo(orgName string, req *gitea.CreateRepoOption) (*gitea.Repository, error)
 	// UpdateRepo is a wrapper for "PATCH /repos/{owner}/{repo}".
 	// This function handles HTTP error wrapping, and validates the server result.
-	UpdateRepo(ctx context.Context, owner, repo string, req *gitea.EditRepoOption) (*gitea.Repository, error)
+	UpdateRepo(owner, repo string, req *gitea.EditRepoOption) (*gitea.Repository, error)
 	// DeleteRepo is a wrapper for "DELETE /repos/{owner}/{repo}".
 	// This function handles HTTP error wrapping.
 	// DANGEROUS COMMAND: In order to use this, you must set destructiveActions to true.
-	DeleteRepo(ctx context.Context, owner, repo string) error
+	DeleteRepo(owner, repo string) error
 
 	// ListKeys is a wrapper for "GET /repos/{owner}/{repo}/keys".
 	// This function handles pagination, HTTP error wrapping, and validates the server result.
-	ListKeys(ctx context.Context, owner, repo string) ([]*gitea.DeployKey, error)
+	ListKeys(owner, repo string) ([]*gitea.DeployKey, error)
 	// ListCommitsPage is a wrapper for "GET /repos/{owner}/{repo}/git/commits".
 	// This function handles pagination, HTTP error wrapping.
-	ListCommitsPage(ctx context.Context, owner, repo, branch string, perPage int, page int) ([]*gitea.Commit, error)
+	ListCommitsPage(owner, repo, branch string, perPage int, page int) ([]*gitea.Commit, error)
 	// CreateKey is a wrapper for "POST /repos/{owner}/{repo}/keys".
 	// This function handles HTTP error wrapping, and validates the server result.
-	CreateKey(ctx context.Context, owner, repo string, req *gitea.DeployKey) (*gitea.DeployKey, error)
+	CreateKey(owner, repo string, req *gitea.DeployKey) (*gitea.DeployKey, error)
 	// DeleteKey is a wrapper for "DELETE /repos/{owner}/{repo}/keys/{key_id}".
 	// This function handles HTTP error wrapping.
-	DeleteKey(ctx context.Context, owner, repo string, id int64) error
+	DeleteKey(owner, repo string, id int64) error
 
 	// GetTeamPermissions is a wrapper for "GET /repos/{owner}/{repo}/teams/{team_slug}
 	// This function handles HTTP error wrapping, and validates the server result.
-	GetTeamPermissions(ctx context.Context, orgName, repo, teamName string) (*gitea.AccessMode, error)
-	// ListRepoTeams is a wrapper for "GET /repos/{owner}/{repo}/teams".
+	GetTeamPermissions(orgName, repo, teamName string) (*gitea.AccessMode, error)
+	// GetRepoTeams is a wrapper for "GET /repos/{owner}/{repo}/teams".
 	// This function handles pagination, HTTP error wrapping, and validates the server result.
-	ListRepoTeams(ctx context.Context, orgName, repo string) ([]*gitea.Team, error)
+	GetRepoTeams(orgName, repo string) ([]*gitea.Team, error)
 	// AddTeam is a wrapper for "PUT /repos/{owner}/{repo}/teams/{team_slug}".
 	// This function handles HTTP error wrapping.
-	AddTeam(ctx context.Context, orgName, repo, teamName string, permission gitprovider.RepositoryPermission) error
+	AddTeam(orgName, repo, teamName string, permission gitprovider.RepositoryPermission) error
 	// RemoveTeam is a wrapper for "DELETE /repos/{owner}/{repo}/teams/{team_slug}".
 	// This function handles HTTP error wrapping.
-	RemoveTeam(ctx context.Context, orgName, repo, teamName string) error
+	RemoveTeam(orgName, repo, teamName string) error
 }
 
 type giteaClientImpl struct {
@@ -100,7 +99,7 @@ func (c *giteaClientImpl) Client() *gitea.Client {
 	return c.c
 }
 
-func (c *giteaClientImpl) GetOrg(_ context.Context, orgName string) (*gitea.Organization, error) {
+func (c *giteaClientImpl) GetOrg(orgName string) (*gitea.Organization, error) {
 	apiObj, res, err := c.c.GetOrg(orgName)
 	if err != nil {
 		return nil, handleHTTPError(res, err)
@@ -112,7 +111,7 @@ func (c *giteaClientImpl) GetOrg(_ context.Context, orgName string) (*gitea.Orga
 	return apiObj, nil
 }
 
-func (c *giteaClientImpl) ListOrgs(_ context.Context) ([]*gitea.Organization, error) {
+func (c *giteaClientImpl) ListOrgs() ([]*gitea.Organization, error) {
 	opts := gitea.ListOrgsOptions{}
 	apiObjs := []*gitea.Organization{}
 	listOpts := &opts.ListOptions
@@ -139,31 +138,25 @@ func (c *giteaClientImpl) ListOrgs(_ context.Context) ([]*gitea.Organization, er
 	return apiObjs, nil
 }
 
-func (c *giteaClientImpl) ListOrgTeamMembers(ctx context.Context, orgName, teamName string) ([]*gitea.User, error) {
-	teams, err := c.ListOrgTeams(ctx, orgName)
+func (c *giteaClientImpl) ListOrgTeamMembers(orgName, teamName string) ([]*gitea.User, error) {
+	teams, err := c.ListOrgTeams(orgName)
 	if err != nil {
 		return nil, err
 	}
-	apiObjs := []*gitea.User{}
-	teamFound := false
+
 	for _, team := range teams {
-		if team.Name != teamName {
-			continue
+		if team.Name == teamName {
+			users, _, err := c.c.ListTeamMembers(team.ID, gitea.ListTeamMembersOptions{})
+			if err != nil {
+				return nil, fmt.Errorf("failed to list team %s members: %w", teamName, err)
+			}
+			return users, nil
 		}
-		teamFound = true
-		users, _, err := c.c.ListTeamMembers(team.ID, gitea.ListTeamMembersOptions{})
-		if err != nil {
-			continue
-		}
-		apiObjs = append(apiObjs, users...)
-	}
-	if teamFound {
-		return apiObjs, nil
 	}
 	return nil, gitprovider.ErrNotFound
 }
 
-func (c *giteaClientImpl) ListOrgTeams(_ context.Context, orgName string) ([]*gitea.Team, error) {
+func (c *giteaClientImpl) ListOrgTeams(orgName string) ([]*gitea.Team, error) {
 	opts := gitea.ListTeamsOptions{}
 	apiObjs := []*gitea.Team{}
 	listOpts := &opts.ListOptions
@@ -183,7 +176,7 @@ func (c *giteaClientImpl) ListOrgTeams(_ context.Context, orgName string) ([]*gi
 	return apiObjs, nil
 }
 
-func (c *giteaClientImpl) GetRepo(_ context.Context, owner, repo string) (*gitea.Repository, error) {
+func (c *giteaClientImpl) GetRepo(owner, repo string) (*gitea.Repository, error) {
 	apiObj, res, err := c.c.GetRepo(owner, repo)
 	return validateRepositoryAPIResp(apiObj, res, err)
 }
@@ -200,7 +193,7 @@ func validateRepositoryAPIResp(apiObj *gitea.Repository, res *gitea.Response, er
 	return apiObj, nil
 }
 
-func (c *giteaClientImpl) ListOrgRepos(_ context.Context, org string) ([]*gitea.Repository, error) {
+func (c *giteaClientImpl) ListOrgRepos(org string) ([]*gitea.Repository, error) {
 	opts := gitea.ListOrgReposOptions{}
 	apiObjs := []*gitea.Repository{}
 	listOpts := &opts.ListOptions
@@ -230,7 +223,7 @@ func validateRepositoryObjects(apiObjs []*gitea.Repository) ([]*gitea.Repository
 	return apiObjs, nil
 }
 
-func (c *giteaClientImpl) ListUserRepos(_ context.Context, username string) ([]*gitea.Repository, error) {
+func (c *giteaClientImpl) ListUserRepos(username string) ([]*gitea.Repository, error) {
 	opts := gitea.ListReposOptions{}
 	apiObjs := []*gitea.Repository{}
 	listOpts := &opts.ListOptions
@@ -250,7 +243,7 @@ func (c *giteaClientImpl) ListUserRepos(_ context.Context, username string) ([]*
 	return validateRepositoryObjects(apiObjs)
 }
 
-func (c *giteaClientImpl) CreateRepo(_ context.Context, orgName string, req *gitea.CreateRepoOption) (*gitea.Repository, error) {
+func (c *giteaClientImpl) CreateRepo(orgName string, req *gitea.CreateRepoOption) (*gitea.Repository, error) {
 	if orgName != "" {
 		apiObj, res, err := c.c.CreateOrgRepo(orgName, *req)
 		return validateRepositoryAPIResp(apiObj, res, err)
@@ -259,12 +252,12 @@ func (c *giteaClientImpl) CreateRepo(_ context.Context, orgName string, req *git
 	return validateRepositoryAPIResp(apiObj, res, err)
 }
 
-func (c *giteaClientImpl) UpdateRepo(_ context.Context, owner, repo string, req *gitea.EditRepoOption) (*gitea.Repository, error) {
+func (c *giteaClientImpl) UpdateRepo(owner, repo string, req *gitea.EditRepoOption) (*gitea.Repository, error) {
 	apiObj, res, err := c.c.EditRepo(owner, repo, *req)
 	return validateRepositoryAPIResp(apiObj, res, err)
 }
 
-func (c *giteaClientImpl) DeleteRepo(_ context.Context, owner, repo string) error {
+func (c *giteaClientImpl) DeleteRepo(owner, repo string) error {
 	// Don't allow deleting repositories if the user didn't explicitly allow dangerous API calls.
 	if !c.destructiveActions {
 		return fmt.Errorf("cannot delete repository: %w", gitprovider.ErrDestructiveCallDisallowed)
@@ -273,7 +266,7 @@ func (c *giteaClientImpl) DeleteRepo(_ context.Context, owner, repo string) erro
 	return handleHTTPError(res, err)
 }
 
-func (c *giteaClientImpl) ListKeys(_ context.Context, owner, repo string) ([]*gitea.DeployKey, error) {
+func (c *giteaClientImpl) ListKeys(owner, repo string) ([]*gitea.DeployKey, error) {
 	opts := gitea.ListDeployKeysOptions{}
 	apiObjs := []*gitea.DeployKey{}
 	listOpts := &opts.ListOptions
@@ -300,7 +293,7 @@ func (c *giteaClientImpl) ListKeys(_ context.Context, owner, repo string) ([]*gi
 	return apiObjs, nil
 }
 
-func (c *giteaClientImpl) ListCommitsPage(_ context.Context, owner, repo, branch string, perPage int, page int) ([]*gitea.Commit, error) {
+func (c *giteaClientImpl) ListCommitsPage(owner, repo, branch string, perPage int, page int) ([]*gitea.Commit, error) {
 	opts := gitea.ListCommitOptions{
 		ListOptions: gitea.ListOptions{
 			PageSize: perPage,
@@ -316,7 +309,7 @@ func (c *giteaClientImpl) ListCommitsPage(_ context.Context, owner, repo, branch
 	return apiObjs, nil
 }
 
-func (c *giteaClientImpl) CreateKey(_ context.Context, owner, repo string, req *gitea.DeployKey) (*gitea.DeployKey, error) {
+func (c *giteaClientImpl) CreateKey(owner, repo string, req *gitea.DeployKey) (*gitea.DeployKey, error) {
 	opts := gitea.CreateKeyOption{Title: req.Title, Key: req.Key, ReadOnly: req.ReadOnly}
 	apiObj, res, err := c.c.CreateDeployKey(owner, repo, opts)
 	if err != nil {
@@ -328,12 +321,12 @@ func (c *giteaClientImpl) CreateKey(_ context.Context, owner, repo string, req *
 	return apiObj, nil
 }
 
-func (c *giteaClientImpl) DeleteKey(_ context.Context, owner, repo string, id int64) error {
+func (c *giteaClientImpl) DeleteKey(owner, repo string, id int64) error {
 	res, err := c.c.DeleteDeployKey(owner, repo, id)
 	return handleHTTPError(res, err)
 }
 
-func (c *giteaClientImpl) GetTeamPermissions(_ context.Context, orgName, repo, teamName string) (*gitea.AccessMode, error) {
+func (c *giteaClientImpl) GetTeamPermissions(orgName, repo, teamName string) (*gitea.AccessMode, error) {
 	apiObj, res, err := c.c.CheckRepoTeam(orgName, repo, teamName)
 	if err != nil {
 		return nil, handleHTTPError(res, err)
@@ -342,30 +335,20 @@ func (c *giteaClientImpl) GetTeamPermissions(_ context.Context, orgName, repo, t
 	return &apiObj.Permission, nil
 }
 
-func (c *giteaClientImpl) ListRepoTeams(ctx context.Context, orgName, repo string) ([]*gitea.Team, error) {
-	teamObjs, err := c.ListOrgTeams(ctx, orgName)
+func (c *giteaClientImpl) GetRepoTeams(orgName, repo string) ([]*gitea.Team, error) {
+	apiObjs, err := c.GetRepoTeams(orgName, repo)
 	if err != nil {
 		return nil, err
-	}
-	apiObjs := []*gitea.Team{}
-	for _, teamObj := range teamObjs {
-		teamRepo, _, checkErr := c.c.CheckRepoTeam(orgName, repo, teamObj.Name)
-		if checkErr != nil {
-			continue
-		}
-		if teamRepo != nil {
-			apiObjs = append(apiObjs, teamRepo)
-		}
 	}
 	return apiObjs, nil
 }
 
-func (c *giteaClientImpl) AddTeam(_ context.Context, orgName, repo, teamName string, permission gitprovider.RepositoryPermission) error {
+func (c *giteaClientImpl) AddTeam(orgName, repo, teamName string, permission gitprovider.RepositoryPermission) error {
 	res, err := c.c.AddRepoTeam(orgName, repo, teamName)
 	return handleHTTPError(res, err)
 }
 
-func (c *giteaClientImpl) RemoveTeam(_ context.Context, orgName, repo, teamName string) error {
+func (c *giteaClientImpl) RemoveTeam(orgName, repo, teamName string) error {
 	res, err := c.c.RemoveRepoTeam(orgName, repo, teamName)
 	return handleHTTPError(res, err)
 }

@@ -53,7 +53,7 @@ func (c *CommitClient) ListPage(ctx context.Context, branch string, perPage, pag
 
 func (c *CommitClient) listPage(ctx context.Context, branch string, perPage, page int) ([]*commitType, error) {
 	// GET /repos/{owner}/{repo}/commits
-	apiObjs, err := c.c.ListCommitsPage(ctx, c.ref.GetIdentity(), c.ref.GetRepository(), branch, perPage, page)
+	apiObjs, err := c.c.ListCommitsPage(c.ref.GetIdentity(), c.ref.GetRepository(), branch, perPage, page)
 	if err != nil {
 		return nil, err
 	}

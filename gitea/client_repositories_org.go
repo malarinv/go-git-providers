@@ -48,7 +48,7 @@ func (c *OrgRepositoriesClient) Get(ctx context.Context, ref gitprovider.OrgRepo
 		return nil, err
 	}
 	// GET /repos/{owner}/{repo}
-	apiObj, err := c.c.GetRepo(ctx, ref.GetIdentity(), ref.GetRepository())
+	apiObj, err := c.c.GetRepo(ref.GetIdentity(), ref.GetRepository())
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (c *OrgRepositoriesClient) List(ctx context.Context, ref gitprovider.Organi
 	}
 
 	// GET /orgs/{org}/repos
-	apiObjs, err := c.c.ListOrgRepos(ctx, ref.Organization)
+	apiObjs, err := c.c.ListOrgRepos(ref.Organization)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func createRepository(ctx context.Context, c giteaClient, ref gitprovider.Reposi
 		apiOpts.License = knownLicenseTemplateMap[string(*o.LicenseTemplate)]
 	}
 
-	return c.CreateRepo(ctx, orgName, &apiOpts)
+	return c.CreateRepo(orgName, &apiOpts)
 }
 
 func reconcileRepository(ctx context.Context, actual gitprovider.UserRepository, req gitprovider.RepositoryInfo) (bool, error) {

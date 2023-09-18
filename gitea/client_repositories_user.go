@@ -40,7 +40,7 @@ func (c *UserRepositoriesClient) Get(ctx context.Context, ref gitprovider.UserRe
 		return nil, err
 	}
 	// GET /repos/{owner}/{repo}
-	apiObj, err := c.c.GetRepo(ctx, ref.GetIdentity(), ref.GetRepository())
+	apiObj, err := c.c.GetRepo(ref.GetIdentity(), ref.GetRepository())
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *UserRepositoriesClient) List(ctx context.Context, ref gitprovider.UserR
 	}
 
 	// GET /users/{username}/repos
-	apiObjs, err := c.c.ListUserRepos(ctx, ref.UserLogin)
+	apiObjs, err := c.c.ListUserRepos(ref.UserLogin)
 	if err != nil {
 		return nil, err
 	}

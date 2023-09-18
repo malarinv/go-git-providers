@@ -40,7 +40,7 @@ type TeamsClient struct {
 // ErrNotFound is returned if the resource does not exist.
 func (c *TeamsClient) Get(ctx context.Context, teamName string) (gitprovider.Team, error) {
 	// GET /orgs/{org}/teams/{team_slug}/members
-	apiObjs, err := c.c.ListOrgTeamMembers(ctx, c.ref.Organization, teamName)
+	apiObjs, err := c.c.ListOrgTeamMembers(c.ref.Organization, teamName)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (c *TeamsClient) Get(ctx context.Context, teamName string) (gitprovider.Tea
 // List returns all available organizations, using multiple paginated requests if needed.
 func (c *TeamsClient) List(ctx context.Context) ([]gitprovider.Team, error) {
 	// GET /orgs/{org}/teams
-	apiObjs, err := c.c.ListOrgTeams(ctx, c.ref.Organization)
+	apiObjs, err := c.c.ListOrgTeams(c.ref.Organization)
 	if err != nil {
 		return nil, err
 	}

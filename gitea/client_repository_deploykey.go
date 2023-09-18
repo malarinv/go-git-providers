@@ -74,7 +74,7 @@ func (c *DeployKeyClient) List(ctx context.Context) ([]gitprovider.DeployKey, er
 
 func (c *DeployKeyClient) list(ctx context.Context) ([]*deployKey, error) {
 	// GET /repos/{owner}/{repo}/keys
-	apiObjs, err := c.c.ListKeys(ctx, c.ref.GetIdentity(), c.ref.GetRepository())
+	apiObjs, err := c.c.ListKeys(c.ref.GetIdentity(), c.ref.GetRepository())
 	if err != nil {
 		return nil, err
 	}
@@ -145,5 +145,5 @@ func createDeployKey(ctx context.Context, c giteaClient, ref gitprovider.Reposit
 		return nil, err
 	}
 	// POST /repos/{owner}/{repo}/keys
-	return c.CreateKey(ctx, ref.GetIdentity(), ref.GetRepository(), deployKeyToAPI(&req))
+	return c.CreateKey(ref.GetIdentity(), ref.GetRepository(), deployKeyToAPI(&req))
 }

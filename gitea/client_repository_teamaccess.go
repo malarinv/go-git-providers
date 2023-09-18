@@ -42,7 +42,7 @@ type TeamAccessClient struct {
 // TeamAccess.APIObject will be nil, because there's no underlying Gitea struct.
 func (c *TeamAccessClient) Get(ctx context.Context, name string) (gitprovider.TeamAccess, error) {
 	// GET /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}
-	permission, err := c.c.GetTeamPermissions(ctx, c.ref.GetIdentity(), c.ref.GetRepository(), name)
+	permission, err := c.c.GetTeamPermissions(c.ref.GetIdentity(), c.ref.GetRepository(), name)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (c *TeamAccessClient) Get(ctx context.Context, name string) (gitprovider.Te
 // List returns all available team access lists, using multiple paginated requests if needed.
 func (c *TeamAccessClient) List(ctx context.Context) ([]gitprovider.TeamAccess, error) {
 	// List all teams, using pagination. This does not contain information about the members
-	apiObjs, err := c.c.ListRepoTeams(ctx, c.ref.GetIdentity(), c.ref.GetRepository())
+	apiObjs, err := c.c.GetRepoTeams(c.ref.GetIdentity(), c.ref.GetRepository())
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (c *TeamAccessClient) Create(ctx context.Context, req gitprovider.TeamAcces
 	}
 
 	// PUT /orgs/{org}/teams/{team_slug}/repos/{owner}/{repo}
-	if err := c.c.AddTeam(ctx, c.ref.GetIdentity(), c.ref.GetRepository(), req.Name, *req.Permission); err != nil {
+	if err := c.c.AddTeam(c.ref.GetIdentity(), c.ref.GetRepository(), req.Name, *req.Permission); err != nil {
 		return nil, err
 	}
 

@@ -41,7 +41,7 @@ func (c *OrganizationsClient) Get(ctx context.Context, ref gitprovider.Organizat
 	}
 
 	// GET /orgs/{org}
-	apiObj, err := c.c.GetOrg(ctx, ref.Organization)
+	apiObj, err := c.c.GetOrg(ref.Organization)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (c *OrganizationsClient) Get(ctx context.Context, ref gitprovider.Organizat
 // List returns all available organizations, using multiple paginated requests if needed.
 func (c *OrganizationsClient) List(ctx context.Context) ([]gitprovider.Organization, error) {
 	// GET /user/orgs
-	apiObjs, err := c.c.ListOrgs(ctx)
+	apiObjs, err := c.c.ListOrgs()
 	if err != nil {
 		return nil, err
 	}
